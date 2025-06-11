@@ -71,56 +71,6 @@ const MapSmiffer = () => {
   const mapInstanceRef = useRef(null);
   const listContainerRef = useRef(null);
   const observerRef = useRef(null);
-  const hoverTimeoutRef = useRef(null); // Nouveau ref pour gérer les timeouts de hover
-
-  // Fonction pour obtenir l'ID unique d'un restaurant
-  const getRestaurantId = (restaurant) => {
-    return restaurant.placeId || restaurant.id;
-  };
-
-  // Gestionnaires de hover corrigés pour éviter les conflits
-  const handleRestaurantHover = useCallback((restaurant, source = 'list') => {
-    if (
-      restaurant &&
-      typeof restaurant.latitude === "number" &&
-      typeof restaurant.longitude === "number" &&
-      !isNaN(restaurant.latitude) &&
-      !isNaN(restaurant.longitude)
-    ) {
-      // Clear any existing timeout
-      if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current);
-      }
-      
-      // Set hover immediately but with source tracking
-      setHoveredRestaurant({...restaurant, hoverSource: source});
-      
-      // Only move map view if hover comes from list
-      if (mapInstanceRef.current && source === 'list') {
-        mapInstanceRef.current.setView(
-          [restaurant.latitude, restaurant.longitude],
-          mapInstanceRef.current.getZoom()
-        );
-      }
-    }
-  }, []);
-
-  const handleRestaurantLeave = useCallback((source = 'list') => {
-    if (hoverTimeoutRef.current) {
-      clearTimeout(hoverTimeoutRef.current);
-    }
-    
-    // Add small delay to prevent flickering
-    hoverTimeoutRef.current = setTimeout(() => {
-      setHoveredRestaurant(null);
-    }, 50);
-  }, []);
-
-  // Fonction pour vérifier si un restaurant est survolé
-  const isRestaurantHovered = (restaurant) => {
-    return hoveredRestaurant && 
-           (getRestaurantId(hoveredRestaurant) === getRestaurantId(restaurant));
-  };
 
   // Fonction d'export CSV
   const handleExportCSV = async () => {
@@ -358,6 +308,7 @@ const MapSmiffer = () => {
     setSearchQuery("");
     setCity("");
     setCategoryQuery("");
+
   };
 
   const loadMoreData = useCallback(() => {
@@ -472,6 +423,29 @@ const MapSmiffer = () => {
     setSelectedRestaurant(null);
   }, []);
 
+ const handleRestaurantHover = useCallback((restaurant) => {
+  if (
+    restaurant &&
+    typeof restaurant.latitude === "number" &&
+    typeof restaurant.longitude === "number" &&
+    !isNaN(restaurant.latitude) &&
+    !isNaN(restaurant.longitude)
+  ) {
+    setHoveredRestaurant(restaurant);
+
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.setView(
+        [restaurant.latitude, restaurant.longitude],
+        mapInstanceRef.current.getZoom()
+      );
+    }
+  }
+}, []);
+
+const handleRestaurantLeave = useCallback(() => {
+  setHoveredRestaurant(null);
+}, []);
+
   const handleToggleDarkMode = () => {
     setIsDarkMode((prev) => !prev);
   };
@@ -564,13 +538,10 @@ const MapSmiffer = () => {
           !isNaN(latitude) &&
           !isNaN(longitude)
         ) {
-          // Only center if hover source is from list
-          if (hoveredRestaurant.hoverSource === 'list') {
-            mapInstanceRef.current.setView(
-              [latitude, longitude],
-              mapInstanceRef.current.getZoom()
-            );
-          }
+          mapInstanceRef.current.setView(
+            [latitude, longitude],
+            mapInstanceRef.current.getZoom()
+          );
         }
       } catch (error) {
         console.error(
@@ -738,6 +709,8 @@ const MapSmiffer = () => {
                 </div>
             </div>
           </div>
+
+
 
           <div className="filters-container  dark:bg-gray-900 dark:text-white text-gray-800"> 
             <button
@@ -915,18 +888,22 @@ const MapSmiffer = () => {
             ) : (
               <>
                 {allRestaurants.map((restaurant) => (
-                  <RestaurantListItem
-                    key={getRestaurantId(restaurant)}
-                    restaurant={restaurant}
-                    isFavorite={favorites.includes(getRestaurantId(restaurant))}
-                    isHovered={isRestaurantHovered(restaurant)}
-                    onHover={(restaurant) => handleRestaurantHover(restaurant, 'list')}
-                    onLeave={() => handleRestaurantLeave('list')}
-                    onShowDetails={handleShowDetails}
-                    onFavoriteToggle={() => toggleFavorite(getRestaurantId(restaurant))}
-                    isDarkMode={isDarkMode}
-                  />
-                ))}
+  <RestaurantListItem
+    key={restaurant.placeId}
+    restaurant={restaurant}
+    isFavorite={favorites.includes(restaurant.placeId)}
+    isHovered={
+      hoveredRestaurant &&
+      (hoveredRestaurant.placeId === restaurant.placeId ||
+        hoveredRestaurant.id === restaurant.id)
+    }
+    onHover={handleRestaurantHover}  // ← Cette ligne était manquante !
+    onLeave={handleRestaurantLeave}
+    onShowDetails={handleShowDetails}
+    onFavoriteToggle={() => toggleFavorite(restaurant.placeId)}
+    isDarkMode={isDarkMode}
+  />
+))}
 
                 {hasMoreData && (
                   <div
@@ -979,14 +956,23 @@ const MapSmiffer = () => {
             {/* Marqueurs sur la carte */}
             {restaurants.map((restaurant) => (
               <RestaurantMapMarker
-                key={getRestaurantId(restaurant)}
+                key={restaurant.id || restaurant.placeId}
                 restaurant={restaurant}
-                isHovered={isRestaurantHovered(restaurant)}
-                isFavorite={favorites.includes(getRestaurantId(restaurant))}
-                //onHover={(restaurant) => handleRestaurantHover(restaurant, 'map')}
-                onLeave={() => handleRestaurantLeave('map')}
+                isHovered={
+                  hoveredRestaurant &&
+                  (hoveredRestaurant.id === restaurant.id ||
+                    hoveredRestaurant.placeId === restaurant.placeId)
+                }
+                isFavorite={
+                  favorites.includes(restaurant.id) ||
+                  favorites.includes(restaurant.placeId)
+                }
+                onHover={handleRestaurantHover}
+                onLeave={handleRestaurantLeave}
                 onShowDetails={handleShowDetails}
-                onFavoriteToggle={() => toggleFavorite(getRestaurantId(restaurant))}
+                onFavoriteToggle={() =>
+                  toggleFavorite(restaurant.id || restaurant.placeId)
+                }
                 isDarkMode={isDarkMode}
                 map={mapInstanceRef.current}
               />

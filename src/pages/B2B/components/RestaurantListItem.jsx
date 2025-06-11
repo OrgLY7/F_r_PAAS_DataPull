@@ -14,11 +14,15 @@ const RestaurantListItem = ({
 }) => {
   // Gestionnaires d'événements explicites pour éviter les erreurs
   const handleMouseEnter = () => {
-    if (onHover && restaurant) onHover(restaurant);
+    if (onHover && restaurant) {
+      onHover(restaurant);
+    }
   };
 
   const handleMouseLeave = () => {
-    if (onLeave) onLeave();
+    if (onLeave) {
+      onLeave();
+    }
   };
 
   const handleClick = () => {
@@ -26,26 +30,30 @@ const RestaurantListItem = ({
   };
 
   const handleFavoriteClick = (e) => {
-    e.stopPropagation(); // Empêcher le clic de se propager à l'élément parent
+    e.stopPropagation();
     if (onFavoriteToggle) onFavoriteToggle();
   };
 
-  // Vérifier que l'objet restaurant existe pour éviter les erreurs
   if (!restaurant) {
     return null;
   }
 
   return (
     <div
-      className="restaurant-list-item dark:bg-gray-900 dark:text-white text-gray-800"
+      className={`restaurant-list-item dark:bg-gray-900 dark:text-white text-gray-800 ${
+        isHovered ? 'hovered' : ''
+      }`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={handleClick}
     >
+      {/* Le reste du contenu reste identique */}
       <div className="restaurant-list-item-content dark:bg-gray-900 dark:text-white text-gray-800">
-        <div className="restaurant-info  dark:bg-gray-900 dark:text-white text-gray-800">
+        <div className="restaurant-info dark:bg-gray-900 dark:text-white text-gray-800">
           <div className="restaurant-name-row">
-            <h3 className="restaurant-name dark:bg-gray-900 dark:text-white text-gray-800">{restaurant.name}</h3>
+            <h3 className="restaurant-name dark:bg-gray-900 dark:text-white text-gray-800">
+              {restaurant.name}
+            </h3>
             <button
               className={`favorite-button ${isFavorite ? "is-favorite" : ""}`}
               onClick={handleFavoriteClick}
@@ -84,16 +92,9 @@ const RestaurantListItem = ({
             )}
           </div>
 
-          {/* Informations principales */}
-          <div className="main-info ">
+          <div className="main-info">
             {restaurant.address && <div>{restaurant.address}</div>}
             {restaurant.phone && <div>{restaurant.phone}</div>}
-            {/*restaurant.status && (
-              <div className="status-info">
-                <Clock size={12} />
-                <span>{restaurant.status}</span>
-              </div>
-            )*/}
           </div>
         </div>
 

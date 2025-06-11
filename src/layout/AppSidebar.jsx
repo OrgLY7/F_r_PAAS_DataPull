@@ -103,9 +103,19 @@ const navItems = [
           },
         ],
       },
+      {
+        
+        icon: <MagnifyingGlassIcon />,
+        name: "TrustpilotClone",
+        path: "/TrustpilotClone",
+        pro: false,
+      },
+      
       
     ],
-  },
+  },//
+
+  
 ];
 
 const othersItems = [
