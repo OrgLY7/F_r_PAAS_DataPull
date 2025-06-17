@@ -5,6 +5,12 @@ import { useSidebar } from "../context/SidebarContext";
 import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
 import NotificationDropdown from "../components/header/NotificationDropdown";
 import UserDropdown from "../components/header/UserDropdown";
+import {
+  Avatar,
+  Button,
+  IconButton,
+  Typography,
+} from "@material-tailwind/react";
 
 const AppHeader = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
@@ -82,19 +88,8 @@ const AppHeader = () => {
             )}
             {/* Cross Icon */}
           </button>
-
-          <Link to="/" className="lg:hidden">
-            <img
-              className="dark:hidden"
-              src="./images/logo/logo.svg"
-              alt="Logo"
-            />
-            <img
-              className="hidden dark:block"
-              src="./images/logo/logo-dark.svg"
-              alt="Logo"
-            />
-          </Link>
+                    
+          
 
           <button
             onClick={toggleApplicationMenu}

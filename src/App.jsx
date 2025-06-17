@@ -29,7 +29,8 @@ import StatisticsDashboard from "./pages/Dashboard/StatisticsDashboard";
 import MapSmiffer from "./pages/B2B/B2BMap";
 import HomepageSolutions from "./pages/home";
 import {B2BSearch} from "./pages/B2B/B2Bsearch";
-import TrustpilotClone from "./pages/B2B/ShadowPilot";
+import TrustpilotClone from "./pages/B2B/ShadowPilot/ShadowPilot";
+import SahdowpilotCategoriesPage from "./pages/B2B/ShadowPilot/TrustpilotCategoriesPage";
 export default function App() {
   return (
     <>
@@ -64,7 +65,8 @@ export default function App() {
               <Route path="/gMail" element={<GMail />} />
               <Route path="/B2BMap" element={<MapSmiffer />} />
               <Route path="/B2BSearch" element={<B2BSearch />} />
-              <Route path="/TrustpilotClone" element={<TrustpilotClone />} />  
+              <Route path="/TrustpilotClone" element={<TrustpilotClone />} />
+            <Route path="/SahdowpilotCategoriesPage" element={<SahdowpilotCategoriesPage />} />  
 
 
             {/* Ui Elements */}

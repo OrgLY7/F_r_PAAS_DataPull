@@ -81,7 +81,7 @@ const Header = ({ onClick, onToggle }) => {
             />
             <img
               className="hidden dark:block"
-              src="./images/logo/logo-dark.svg"
+              src="./images/logo/logo-dar"
               alt="Logo"
             />
           </Link>
