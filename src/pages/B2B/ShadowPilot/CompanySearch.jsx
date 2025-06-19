@@ -796,6 +796,7 @@ const CompanySearch = ({
   };
 
   return (
+    
     <div className="dark:text-gray-100 dark:bg-gray-900">
       {/* Modal de progression d'export */}
       <ExportProgressModal />

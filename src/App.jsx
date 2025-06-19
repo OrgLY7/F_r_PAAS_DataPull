@@ -65,7 +65,7 @@ export default function App() {
               <Route path="/gMail" element={<GMail />} />
               <Route path="/B2BMap" element={<MapSmiffer />} />
               <Route path="/B2BSearch" element={<B2BSearch />} />
-              <Route path="/TrustpilotClone" element={<TrustpilotClone />} />
+              <Route path="/shadowpilot" element={<TrustpilotClone />} />
             <Route path="/SahdowpilotCategoriesPage" element={<SahdowpilotCategoriesPage />} />  
 
 

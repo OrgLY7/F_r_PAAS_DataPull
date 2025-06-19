@@ -106,8 +106,8 @@ const navItems = [
       {
         
         icon: <MagnifyingGlassIcon />,
-        name: "TrustpilotClone",
-        path: "/TrustpilotClone",
+        name: "ShadowPilot",
+        path: "/shadowpilot",
         pro: false,
       },
       

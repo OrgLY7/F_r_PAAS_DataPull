@@ -507,7 +507,7 @@ const CompanyDetails = ({ company, reviews, reviewsLoading, onBackToList }) => {
                         : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
                     }`}
                   >
-                    Tous les avis ({enhancedReviews.length})
+                    Echantillons des avis ({enhancedReviews.length})
                   </button>
                   <button
                     onClick={() => setActiveTab('positive')}
@@ -519,7 +519,7 @@ const CompanyDetails = ({ company, reviews, reviewsLoading, onBackToList }) => {
                   >
                     <span className="flex items-center justify-center">
                       <Star className="w-4 h-4 mr-2 fill-emerald-500 text-emerald-500" />
-                      Positifs ({fiveStarReviews.length})
+                      Echantillons des avis Positifs ({fiveStarReviews.length})
                     </span>
                   </button>
                   <button
@@ -532,7 +532,7 @@ const CompanyDetails = ({ company, reviews, reviewsLoading, onBackToList }) => {
                   >
                     <span className="flex items-center justify-center">
                       <Star className="w-4 h-4 mr-2 fill-red-500 text-red-500" />
-                      Négatifs ({oneStarReviews.length})
+                      Echantillons des avisNégatifs ({oneStarReviews.length})
                     </span>
                   </button>
                 </div>

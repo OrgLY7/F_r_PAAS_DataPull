@@ -10,6 +10,7 @@ import {
   ChartBarIcon,
   ArrowRightIcon,
   CheckIcon,
+  StarIcon,
 } from "@heroicons/react/24/outline";
 
 const ModernHome = () => {
@@ -45,6 +46,14 @@ const ModernHome = () => {
       description: "Découvrez des entreprises géographiquement avec notre interface cartographique interactive.",
       features: ["Recherche géolocalisée", "Filtres avancés", "Export de données"],
       path: "/B2BMap",
+    },
+    {
+      id: "trustpilot-integration",
+      icon: <StarIcon className="h-8 w-8" />,
+      title: "Shadowpilot Business",
+      description: "Intégrez et gérez vos avis clients Shadowpilot pour améliorer votre réputation en ligne.",
+      features: ["Gestion des avis", "Analytics de réputation", "Réponses automatisées"],
+      path: "/shadowpilot",
     },
   ];
 
