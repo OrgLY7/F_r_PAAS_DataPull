@@ -9,6 +9,16 @@ import {
   X,
   ArrowRight,
   Building,
+  Download,
+  FileText,
+} from "lucide-react";
+import {
+  MapPin,
+  Globe,
+  Phone,
+  Mail,
+  ExternalLink,
+  ThumbsUp,
 } from "lucide-react";
 
 // Composant DualRangeSlider intégré
@@ -52,8 +62,7 @@ const DualRangeSlider = ({
 
   const stepMarkers = React.useMemo(() => {
     const markers = [];
-    // Pour un slider de 0 à 5, créer 11 marqueurs (tous les 0.5)
-    const stepCount = 10; // 11 marqueurs au total (0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5)
+    const stepCount = 10;
 
     for (let i = 0; i <= stepCount; i++) {
       const stepValue = min + (i * (max - min)) / stepCount;
@@ -313,6 +322,13 @@ const CompanySearch = ({
   const [pageSize, setPageSize] = useState(10);
   const [hasAdvancedSearch, setHasAdvancedSearch] = useState(false);
 
+  // États pour l'export CSV
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState(0);
+  const [exportError, setExportError] = useState(null);
+  const [exportSuccess, setExportSuccess] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+
   // État pour la recherche avancée avec Trust Score en tant que range
   const [advancedSearchParams, setAdvancedSearchParams] = useState({
     name: "",
@@ -321,7 +337,7 @@ const CompanySearch = ({
     domain: "",
     email: "",
     website: "",
-    trustScoreRange: [0, 5], // Nouveau: range au lieu de min/max séparés
+    trustScoreRange: [0, 5],
     numberOfReviewsMin: "",
     numberOfReviewsMax: "",
     socialMedia: "",
@@ -331,9 +347,178 @@ const CompanySearch = ({
     starLevel: "",
     starPercentage: "",
     similarCompanyName: "",
-    category:"",
-    subCategory:""
+    category: "",
+    subCategory: "",
   });
+
+  // Fonction d'export CSV
+  const handleExportCSV = async () => {
+    try {
+      setIsExporting(true);
+      setExportProgress(0);
+      setExportError(null);
+      setExportSuccess(false);
+      setShowExportModal(true);
+
+      // Préparer les filtres pour l'export
+      const exportFilters = {};
+
+      if (hasAdvancedSearch) {
+        // Utiliser les paramètres de recherche avancée
+        Object.entries(advancedSearchParams).forEach(([key, value]) => {
+          if (key === "trustScoreRange") {
+            // Convertir le range en min/max pour l'API
+            if (value[0] > 0) exportFilters.trustScoreMin = value[0];
+            if (value[1] < 5) exportFilters.trustScoreMax = value[1];
+          } else if (value && value.trim && value.trim() !== "") {
+            exportFilters[key] = value.trim();
+          }
+        });
+      } else if (searchTerm.trim()) {
+        // Utiliser la recherche simple par nom
+        exportFilters.name = searchTerm.trim();
+      }
+
+      setExportProgress(10);
+
+      // Appel à votre API d'export
+      const response = await fetch(
+        "http://51.44.136.165:8080/api/businesses/export-csvB2B",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(exportFilters),
+        }
+      );
+
+      setExportProgress(30);
+
+      if (!response.ok) {
+        throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+      }
+
+      setExportProgress(60);
+
+      // Vérifier le type de contenu de la réponse
+      const contentType = response.headers.get("content-type");
+
+      if (contentType && contentType.includes("text/csv")) {
+        // Réponse CSV directe
+        const blob = await response.blob();
+        setExportProgress(90);
+
+        // Créer un lien de téléchargement
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `companies-export-${new Date()
+          .toISOString()
+          .slice(0, 10)}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        setExportProgress(100);
+        setExportSuccess(true);
+      } else {
+        // Réponse JSON (peut-être avec un message d'erreur)
+        const result = await response.json();
+        if (result.error) {
+          throw new Error(result.error);
+        }
+        setExportProgress(100);
+        setExportSuccess(true);
+      }
+
+      // Fermer la modal après 2 secondes de succès
+      setTimeout(() => {
+        setShowExportModal(false);
+        setIsExporting(false);
+        setExportProgress(0);
+        setExportSuccess(false);
+      }, 2000);
+    } catch (error) {
+      console.error("Erreur lors de l'export:", error);
+      setExportError(error.message);
+      setIsExporting(false);
+    }
+  };
+
+  // Fonction pour fermer la modal d'export
+  const closeExportModal = () => {
+    if (!isExporting) {
+      setShowExportModal(false);
+      setExportProgress(0);
+      setExportError(null);
+      setExportSuccess(false);
+    }
+  };
+
+  // Modal de progression d'export
+  const ExportProgressModal = () => {
+    if (!showExportModal) return null;
+
+    return (
+      <div
+        className="fixed inset-0  backdrop-blur-sm flex items-center justify-center z-50000"
+        style={{ backgroundColor: "rgba(0, 0, 0, 0)" }}
+      >
+        <div className="bg-white rounded-lg p-20 max-w-xl w-full mx-4 dark:bg-gray-900">
+          <div className="text-center">
+            <div className="mb-4">
+              <FileText size={48} className="mx-auto mb-2 text-blue-500" />
+              <h3 className="text-lg font-semibold ">
+                {exportSuccess ? "Export terminé!" : "Export en cours..."}
+              </h3>
+            </div>
+
+            {exportError ? (
+              <div className="mb-4 p-3 bg-red-100 border border-red-300 rounded text-red-700 text-sm">
+                Erreur: {exportError}
+              </div>
+            ) : exportSuccess ? (
+              <div className="mb-4 p-3 bg-green-100 border border-green-300 rounded text-green-700 text-sm">
+                Fichier CSV téléchargé avec succès!
+              </div>
+            ) : (
+              <div className="mb-4">
+                <div className="text-sm text-gray-600 mb-2">
+                  Progression: {exportProgress}%
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                  <div
+                    className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${exportProgress}%` }}
+                  ></div>
+                </div>
+                <div className="text-xs text-gray-500">
+                  {exportProgress < 30
+                    ? "Préparation des données..."
+                    : exportProgress < 70
+                    ? "Génération du fichier CSV..."
+                    : exportProgress < 100
+                    ? "Finalisation..."
+                    : "Terminé!"}
+                </div>
+              </div>
+            )}
+
+            {!isExporting && (
+              <button
+                onClick={closeExportModal}
+                className="mt-4 px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+              >
+                Fermer
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // Fonction pour effectuer une recherche simple par nom
   const handleSimpleSearch = async () => {
@@ -347,7 +532,7 @@ const CompanySearch = ({
     setHasAdvancedSearch(false);
     try {
       const response = await fetch(
-        `http://localhost:8080/api/businesses/search/name?name=${encodeURIComponent(
+        `http://51.44.136.165:8080/api/businesses/search/name?name=${encodeURIComponent(
           searchTerm
         )}`
       );
@@ -384,8 +569,8 @@ const CompanySearch = ({
     });
 
     const endpoint = fuzzy
-      ? "http://localhost:8080/api/businesses/searchByA04Fus"
-      : "http://localhost:8080/api/businesses/searchByA04";
+      ? "http://51.44.136.165:8080/api/businesses/searchByA04Fus"
+      : "http://51.44.136.165:8080/api/businesses/searchByA04";
 
     try {
       const response = await fetch(
@@ -466,17 +651,31 @@ const CompanySearch = ({
     return stars;
   };
 
-  const getTrustScoreColor = (score) => {
-    switch (score) {
-      case "Excellent":
-        return "bg-green-50 text-green-700 border border-green-200";
-      case "Très bien":
-        return "bg-blue-50 text-blue-700 border border-blue-200";
-      case "Bien":
-        return "bg-yellow-50 text-yellow-700 border border-yellow-200";
-      default:
-        return "bg-gray-50 text-gray-700 border border-gray-200";
+ const getTrustScoreColor = (score) => {
+    if (typeof score === 'number') {
+      if (score >= 4.5) return 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700';
+      if (score >= 4.0) return 'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700';
+      if (score >= 3.0) return 'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700';
+      if (score >= 2.0) return 'bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700';
+      return 'bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700';
     }
+    
+    switch(score) {
+      case 'Excellent': return 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700';
+      case 'Très bien': return 'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700';
+      case 'Bien': return 'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700';
+      default: return 'bg-gray-50 text-gray-700 border border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600';
+    }
+  };
+    const getTrustScoreLabel = (score) => {
+    if (typeof score === 'number') {
+      if (score >= 4.5) return 'Excellent';
+      if (score >= 4.0) return 'Très bien';
+      if (score >= 3.0) return 'Bien';
+      if (score >= 2.0) return 'Moyen';
+      return 'Mauvais';
+    }
+    return score || 'Non évalué';
   };
 
   const Pagination = () => {
@@ -598,6 +797,9 @@ const CompanySearch = ({
 
   return (
     <div className="dark:text-gray-100 dark:bg-gray-900">
+      {/* Modal de progression d'export */}
+      <ExportProgressModal />
+
       {/* Section Hero moderne avec gradient animé */}
       <div className="relative bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-700 text-white py-16 overflow-hidden">
         {/* Background animé avec gradient qui bouge */}
@@ -704,13 +906,36 @@ const CompanySearch = ({
                 </button>
               </div>
 
-              <button
-                onClick={() => setShowAdvancedSearch(true)}
-                className="flex items-center space-x-2 text-white/90 hover:text-white text-base mx-auto transition-colors duration-200 group"
-              >
-                <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform duration-200" />
-                <span>Recherche avancée</span>
-              </button>
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  onClick={() => setShowAdvancedSearch(true)}
+                  className="group relative flex items-center space-x-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 hover:border-white/30 rounded-xl px-6 py-3 text-white transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-white/10"
+                >
+                  {/* Effet de brillance au survol */}
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                  {/* Icône avec animation */}
+                  <div className="relative z-10 p-1 rounded-lg bg-white/10 group-hover:bg-white/20 transition-all duration-300">
+                    <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform duration-300" />
+                  </div>
+
+                  {/* Texte */}
+                  <span className="relative z-10 font-semibold text-lg group-hover:text-white transition-colors duration-300">
+                    Recherche avancée
+                  </span>
+
+                  {/* Indicateur "Pro" */}
+                  <div className="relative z-10 px-2 py-1 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full text-xs font-bold text-white shadow-lg">
+                    PRO
+                  </div>
+
+                  {/* Particules d'effet */}
+                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-opacity duration-300"></div>
+                  <div className="absolute -bottom-1 -left-1 w-1.5 h-1.5 bg-teal-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-opacity duration-500"></div>
+                </button>
+
+                {/* Bouton d'export CSV dans le hero */}
+              </div>
             </div>
 
             {/* Stats en bas */}
@@ -729,6 +954,13 @@ const CompanySearch = ({
                 <div className="text-2xl font-bold text-white">99%</div>
                 <div className="text-sm">Satisfaction</div>
               </div>
+              <div className="w-px h-8 bg-white/30"></div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-white">
+                  {totalResults}
+                </div>
+                <div className="text-sm">Résultats</div>
+              </div>
             </div>
           </div>
         </div>
@@ -738,7 +970,7 @@ const CompanySearch = ({
       {showAdvancedSearch && (
         <div className="fixed inset-0 z-5000">
           <div
-            className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/10 backdrop-blur-sm"
             onClick={() => setShowAdvancedSearch(false)}
           ></div>
 
@@ -795,7 +1027,7 @@ const CompanySearch = ({
                           })
                         }
                         className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
-                        placeholder="ex: Resturant... "
+                        placeholder="ex: Restaurant... "
                       />
                     </div>
                     <div>
@@ -812,7 +1044,7 @@ const CompanySearch = ({
                           })
                         }
                         className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
-                        placeholder="ex: Paris, France"
+                        placeholder="ex: Fast Food"
                       />
                     </div>
 
@@ -935,26 +1167,7 @@ const CompanySearch = ({
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1 dark:text-gray-100">
-                        Sentiment dominant
-                      </label>
-                      <select
-                        value={advancedSearchParams.dominantSentiment}
-                        onChange={(e) =>
-                          setAdvancedSearchParams({
-                            ...advancedSearchParams,
-                            dominantSentiment: e.target.value,
-                          })
-                        }
-                        className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100"
-                      >
-                        <option value="">Tous les sentiments</option>
-                        <option value="positive">Positif</option>
-                        <option value="negative">Négatif</option>
-                        <option value="neutral">Neutre</option>
-                      </select>
-                    </div>
+                  
                   </div>
                 </div>
               </div>
@@ -970,7 +1183,7 @@ const CompanySearch = ({
                         domain: "",
                         email: "",
                         website: "",
-                        trustScoreRange: [0, 5], // Reset du range
+                        trustScoreRange: [0, 5],
                         numberOfReviewsMin: "",
                         numberOfReviewsMax: "",
                         socialMedia: "",
@@ -980,8 +1193,8 @@ const CompanySearch = ({
                         starLevel: "",
                         starPercentage: "",
                         similarCompanyName: "",
-                        category:"",
-                        subCategory:""
+                        category: "",
+                        subCategory: "",
                       });
                     }}
                     className="flex-1 px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
@@ -1034,16 +1247,30 @@ const CompanySearch = ({
               </p>
             )}
           </div>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="p-2 text-sm border border-gray-300 dark:border-gray-500 rounded-md focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-900"
-          >
-            <option value="recent">Plus récent</option>
-            <option value="rating">Mieux notés</option>
-            <option value="reviews">Plus d'avis</option>
-            <option value="_score">Pertinence</option>
-          </select>
+          <div className="flex items-center gap-3">
+            {/*
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="p-2 text-sm border border-gray-300 dark:border-gray-500 rounded-md focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-900"
+            >
+              <option value="recent">Plus récent</option>
+              <option value="rating">Mieux notés</option>
+              <option value="reviews">Plus d'avis</option>
+              <option value="_score">Pertinence</option>
+            </select>*/}
+
+            {/* Bouton d'export supplémentaire dans la barre d'outils */}
+            <button
+              onClick={handleExportCSV}
+              disabled={isExporting || totalResults === 0}
+              className="flex items-center gap-2 px-3 py-2 bg-green-500 hover:bg-green-600 disabled:bg-gray-400 rounded-md text-white text-sm font-medium transition-colors"
+              title="Exporter les résultats en CSV"
+            >
+              <Download size={14} />
+              Exporter CSV
+            </button>
+          </div>
         </div>
 
         {/* Indicateur de chargement */}
@@ -1056,126 +1283,271 @@ const CompanySearch = ({
           </div>
         )}
 
-        {/* Liste des entreprises */}
+        {/* Liste des entreprises modernisée */}
         {!isLoading && (
-          <div className="space-y-3 mb-6">
+          <div className="space-y-4 mb-6">
             {searchResults.length > 0 ? (
               searchResults.map((company, index) => (
                 <div
                   key={company.id || index}
-                  className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-gray-300 transition-colors p-4"
+                  onClick={() => onViewCompanyDetails(company)}
+                  className="group bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all duration-300 p-6 cursor-pointer hover:shadow-xl hover:shadow-emerald-100 dark:hover:shadow-emerald-900/20 transform hover:-translate-y-1"
                 >
                   <div className="flex items-start justify-between">
-                    <div className="flex items-start space-x-3">
-                      <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center text-lg flex-shrink-0">
-                        {company?.businessMetrics?.logo_url ? (
-                          <img
-                            src={company.businessMetrics?.logo_url}
-                            alt={company.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          company.logo || company.name?.charAt(0) || "🏢"
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1 truncate">
-                          {company.name || "Nom non disponible"}
-                        </h4>
-                        <div className="flex items-center space-x-2 mb-2">
-                          <div className="flex items-center">
-                            {renderStars(
-                              company.businessMetrics?.trustscore ||
-                                company.rating ||
-                                0
-                            )}
-                          </div>
-                          <span className="font-medium text-sm text-gray-900 dark:text-gray-100">
-                            {(
-                              company.businessMetrics?.trustscore ||
-                              company.rating ||
-                              0
-                            ).toFixed(1)}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            (
-                            {(
-                              company.businessMetrics?.number_of_reviews ||
-                              company.totalReviews ||
-                              0
-                            ).toLocaleString()}{" "}
-                            avis)
-                          </span>
-                        </div>
-                        <div className="flex items-center flex-wrap gap-2">
-                          <span
-                            className={`px-2 py-1 rounded-md text-xs font-medium ${getTrustScoreColor(
-                              company.trustScore || "Bien"
-                            )}`}
-                          >
-                            {company.trustScore || "Évalué"}
-                          </span>
-                          {company.address && (
-                            <span className="text-xs text-gray-500 bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded">
-                              {company.address}
+                    <div className="flex items-start space-x-4">
+                      {/* Logo de l'entreprise amélioré */}
+                      <div className="relative">
+                        <div className="w-16 h-16 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-2xl flex items-center justify-center text-xl flex-shrink-0 border border-emerald-200 dark:border-emerald-700 shadow-sm">
+                          {company?.businessMetrics?.logo_url ? (
+                            <img
+                              src={company.businessMetrics?.logo_url}
+                              alt={company.name}
+                              className="w-full h-full object-cover rounded-2xl"
+                            />
+                          ) : (
+                            <span className="text-emerald-600 dark:text-emerald-400 font-bold text-xl">
+                              {company.logo || company.name?.charAt(0) || "🏢"}
                             </span>
                           )}
-                          {company.domain && (
-                            <span className="text-xs text-blue-600 bg-blue-50 dark:bg-blue-900 px-2 py-1 rounded">
-                              {company.domain}
-                            </span>
+                        </div>
+                        {/* Badge de statut */}
+                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                        </div>
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        {/* Nom de l'entreprise */}
+                        <div className="flex items-center space-x-3 mb-3">
+                          <h4 className="text-lg font-bold text-gray-900 dark:text-gray-100 truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                            {company.name || "Nom non disponible"}
+                          </h4>
+                          {company.verified && (
+                            <div className="flex items-center space-x-1 bg-blue-100 dark:bg-blue-900/30 px-2 py-1 rounded-full">
+                              <Star className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                              <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                                Vérifié
+                              </span>
+                            </div>
                           )}
                         </div>
 
-                        {/* Informations supplémentaires condensées */}
+                        {/* Évaluation et avis */}
+                        <div className="flex items-center space-x-4 mb-4">
+                          <div className="flex items-center space-x-2">
+                            <div className="flex items-center bg-amber-50 dark:bg-amber-900/20 px-3 py-1 rounded-full">
+                              {renderStars(
+                                company.businessMetrics?.trustscore ||
+                                  company.rating ||
+                                  0
+                              )}
+                            </div>
+                            <span className="font-bold text-lg text-gray-900 dark:text-gray-100">
+                              {(
+                                company.businessMetrics?.trustscore ||
+                                company.rating ||
+                                0
+                              ).toFixed(1)}
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
+                            <Star className="w-4 h-4" />
+                            <span className="text-sm font-medium">
+                              {(
+                                company.businessMetrics?.number_of_reviews ||
+                                company.totalReviews ||
+                                0
+                              ).toLocaleString()}{" "}
+                              avis
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Tags et informations */}
+                        <div className="flex items-center flex-wrap gap-2 mb-4">
+                          <span className={`px-4 py-2 rounded-full text-sm font-semibold ${getTrustScoreColor(company.trustscore || 0)}`}>
+                    {getTrustScoreLabel(company.trustscore)}
+                  </span>
+                          {company.address && (
+                            <div className="flex items-center space-x-1 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
+                              <MapPin className="w-3 h-3 text-gray-500" />
+                              <span className="text-sm text-gray-700 dark:text-gray-300">
+                                {company.address}
+                              </span>
+                            </div>
+                          )}
+                          {company.domain && (
+                            <div className="flex items-center space-x-1 bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full">
+                              <Globe className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                              <span className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                                {company.domain}
+                              </span>
+                            </div>
+                          )}
+                          {company.category && (
+                            <div className="flex items-center space-x-1 bg-purple-100 dark:bg-purple-900/30 px-3 py-1 rounded-full">
+                              <Star className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                              <span className="text-sm text-purple-600 dark:text-purple-400 font-medium">
+                                {company.category}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Informations de contact */}
                         {(company.phone ||
                           company.email ||
                           company.website) && (
-                          <div className="mt-2 space-y-1">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
                             {company.phone && (
-                              <div className="text-xs text-gray-600 dark:text-gray-400">
-                                <span className="font-medium">Tél:</span>{" "}
-                                {company.phone}
+                              <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700/50 px-3 py-2 rounded-lg">
+                                <Phone className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+                                  {company.phone}
+                                </span>
                               </div>
                             )}
                             {company.email && (
-                              <div className="text-xs text-gray-600 dark:text-gray-400">
-                                <span className="font-medium">Email:</span>{" "}
-                                {company.email}
+                              <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700/50 px-3 py-2 rounded-lg">
+                                <Mail className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                <span className="text-sm text-gray-700 dark:text-gray-300 font-medium truncate">
+                                  {company.email}
+                                </span>
+                              </div>
+                            )}
+                            {company.website && (
+                              <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700/50 px-3 py-2 rounded-lg">
+                                <ExternalLink className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                <span className="text-sm text-gray-700 dark:text-gray-300 font-medium truncate">
+                                  {company.website}
+                                </span>
                               </div>
                             )}
                           </div>
                         )}
+
+                        {/* Métriques supplémentaires */}
+                        
                       </div>
                     </div>
-                    <button
-                      onClick={() => onViewCompanyDetails(company)}
-                      className="text-green-600 hover:text-green-700 text-sm font-medium flex items-center flex-shrink-0 ml-3 transition-colors"
-                    >
-                      Voir les avis
-                      <ArrowRight className="w-3 h-3 ml-1" />
-                    </button>
+
+                    {/* Bouton d'action */}
+                    <div className="flex flex-col items-end space-y-2">
+                      <button
+                        className="flex items-center  bg-gradient-to-r from-emerald-400 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white px-2 py-2 rounded-xl font-semibold text-sm transition-all duration-200 shadow-lg hover:shadow-xl transform group-hover:scale-105"
+                        style={{ width: "110px" }}
+                      >
+                        <span>Voir les avis</span>
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </button>
+
+                      {/* Score de confiance visuel */}
+                      <div className="flex items-center space-x-2">
+                        <div className="w-16 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full transition-all duration-500"
+                            style={{
+                              width: `${Math.min(
+                                ((company.businessMetrics?.trustscore ||
+                                  company.rating ||
+                                  0) /
+                                  5) *
+                                  100,
+                                100
+                              )}%`,
+                            }}
+                          ></div>
+                        </div>
+                        <span className="text-xs text-gray-500 font-medium">
+                          {Math.round(
+                            ((company.businessMetrics?.trustscore ||
+                              company.rating ||
+                              0) /
+                              5) *
+                              100
+                          )}
+                          %
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
-                  {company.recentReview && (
-                    <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-600">
-                      <p className="text-xs text-gray-600 dark:text-gray-400 italic line-clamp-2">
-                        "{company.recentReview}"
-                      </p>
-                    </div>
-                  )}
+                  {/* Avis récent */}
+                  {company.fiveStarReviews &&
+                    company.fiveStarReviews.length > 0 && (
+                      <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-4 rounded-xl border border-blue-200 dark:border-blue-700/50">
+                          <div className="flex items-start space-x-3">
+                            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                              <ThumbsUp className="w-4 h-4 text-white" />
+                            </div>
+                            <div className="flex-1">
+                              {/* Titre de l'avis */}
+                              <p className="text-sm text-gray-700 dark:text-gray-300 italic leading-relaxed mb-2">
+                                "
+                                {company.fiveStarReviews[0]?.title ||
+                                  "Aucun titre disponible"}
+                                "
+                              </p>
+
+                              {/* Rating avec étoiles */}
+                              <div className="flex items-center space-x-2">
+                                <div className="flex items-center space-x-1">
+                                  {[...Array(5)].map((_, i) => (
+                                    <Star
+                                      key={i}
+                                      className={`w-4 h-4 ${
+                                        i <
+                                        Math.floor(
+                                          company.fiveStarReviews[0]?.rating ||
+                                            0
+                                        )
+                                          ? "text-amber-400 fill-current"
+                                          : "text-gray-300 dark:text-gray-600"
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+                                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                  {company.fiveStarReviews[0]?.rating?.toFixed(
+                                    1
+                                  ) || "0.0"}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                 </div>
               ))
             ) : (
-              <div className="text-center py-8">
-                <Building className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">
+              <div className="text-center py-16">
+                <div className="relative">
+                  <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                    <Building className="w-12 h-12 text-gray-400 dark:text-gray-500" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg">
+                    <span className="text-white text-sm">?</span>
+                  </div>
+                </div>
+                <h4 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">
                   Aucun résultat trouvé
                 </h4>
-                <p className="text-xs text-gray-500">
-                  Essayez de modifier vos critères de recherche ou utilisez la
-                  recherche avancée.
+                <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                  Aucune entreprise ne correspond à vos critères de recherche.
+                  Essayez de modifier vos filtres ou utilisez la recherche
+                  avancée.
                 </p>
+                <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-4">
+                  <button className="flex items-center space-x-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl">
+                    <Star className="w-4 h-4" />
+                    <span>Recherche avancée</span>
+                  </button>
+                  <button className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 px-6 py-3 rounded-xl font-medium transition-colors">
+                    <span>Réinitialiser les filtres</span>
+                  </button>
+                </div>
               </div>
             )}
           </div>

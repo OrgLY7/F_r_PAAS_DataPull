@@ -150,7 +150,7 @@ const MapSmiffer = () => {
 
       // Appel à l'API d'export
       const response = await fetch(
-        "http://localhost:8080/api/b2b/export-csvB2B",
+        "http://51.44.136.165:8080/api/b2b/export-csvB2B",
         {
           method: "POST",
           headers: {
@@ -598,7 +598,7 @@ const MapSmiffer = () => {
         style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
       >
         <div
-          className="bg-white rounded-lg p-20 max-w-xl w-full mx-4 "
+          className="bg-white rounded-lg p-20 max-w-xl w-full mx-4 dark:bg-gray-900"
         >
           <div className="text-center">
             <div className="mb-4">

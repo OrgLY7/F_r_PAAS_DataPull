@@ -78,7 +78,7 @@ const ProtectedData = memo(({ dataId, type }) => {
     
     try {
       setIsLoading(true);
-      const response = await axios.get(`http://localhost:8080/users/protectedData/${dataId}?type=${type}`);
+      const response = await axios.get(`http://51.44.136.165:8080/users/protectedData/${dataId}?type=${type}`);
       const responseData = response.data.value;
       dataCache.set(cacheKey, responseData);
       setData(responseData);
@@ -384,8 +384,8 @@ export function PersonalSearch() {
 
     // Choose API endpoint based on fuzzy search toggle
     const apiEndpoint = useFuzzySearch 
-      ? 'http://localhost:8080/users/searchByA04'
-      : 'http://localhost:8080/users/searchByA04NoFus';
+      ? 'http://51.44.136.165:8080/users/searchByA04'
+      : 'http://51.44.136.165:8080/users/searchByA04NoFus';
 
     try {
       const response = await axios.post(
@@ -491,7 +491,7 @@ export function PersonalSearch() {
     try {
       setDownloadProgress(10);
 
-      const response = await fetch("http://localhost:8080/users/export-csvPS", {
+      const response = await fetch("http://51.44.136.165:8080/users/export-csvPS", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

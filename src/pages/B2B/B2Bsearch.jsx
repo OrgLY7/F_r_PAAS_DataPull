@@ -641,8 +641,8 @@ export function B2BSearch() {
     try {
       // Choisir l'API en fonction du type de recherche
       const apiEndpoint = useFuzzySearch 
-        ? 'http://localhost:8080/api/b2b/searchByA04Fus' // API Fuzzy
-        : 'http://localhost:8080/api/b2b/searchByA04';    // API Exact
+        ? 'http://51.44.136.165:8080/api/b2b/searchByA04Fus' // API Fuzzy
+        : 'http://51.44.136.165:8080/api/b2b/searchByA04';    // API Exact
 
       console.log(`Using ${useFuzzySearch ? 'Fuzzy' : 'Exact'} search API: ${apiEndpoint}`);
 
@@ -779,8 +779,8 @@ export function B2BSearch() {
 
       // Choisir l'API de téléchargement en fonction du type de recherche
       const exportEndpoint = useFuzzySearch 
-        ? "http://localhost:8080/api/b2b/export-csvB2B-fus"  // API Export Fuzzy
-        : "http://localhost:8080/api/b2b/export-csvB2B";     // API Export Exact
+        ? "http://51.44.136.165:8080/api/b2b/export-csvB2B-fus"  // API Export Fuzzy
+        : "http://51.44.136.165:8080/api/b2b/export-csvB2B";     // API Export Exact
 
       console.log(`Using ${useFuzzySearch ? 'Fuzzy' : 'Exact'} export API: ${exportEndpoint}`);
 

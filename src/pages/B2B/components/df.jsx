@@ -100,7 +100,7 @@ const MapSmiffer = () => {
 
       // Appel à l'API d'export
       const response = await fetch(
-        "http://localhost:8080/api/b2b/export-csvB2B",
+        "http://51.44.136.165:8080/api/b2b/export-csvB2B",
         {
           method: "POST",
           headers: {

@@ -114,7 +114,7 @@ const ProtectedData = ({ dataId, type }) => {
     try {
       setIsLoading(true);
       const response = await axios.get(
-        `http://localhost:8080/users/protectedData/${dataId}?type=${type}`
+        `http://51.44.136.165:8080/users/protectedData/${dataId}?type=${type}`
       );
       const responseData = response.data.value;
       dataCache.set(cacheKey, responseData);
@@ -391,7 +391,7 @@ export function MapSearch() {
 
       setDownloadProgress(30);
 
-      const response = await fetch("http://localhost:8080/users/export-csvMS", {
+      const response = await fetch("http://51.44.136.165:8080/users/export-csvMS", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -561,7 +561,7 @@ export function MapSearch() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/users/search/advanced",
+        "http://51.44.136.165:8080/users/search/advanced",
         requestPayload,
         {
           headers: {

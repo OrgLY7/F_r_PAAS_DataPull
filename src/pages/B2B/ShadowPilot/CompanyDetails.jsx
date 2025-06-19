@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Star, StarHalf, ArrowLeft, Phone, Mail, Globe, MapPin, User, ThumbsUp, MessageCircle, ExternalLink, Calendar, TrendingUp, Users, Award, BarChart3, Shield, Filter, ChevronDown } from 'lucide-react';
+import { Star, StarHalf, ArrowLeft, Phone, Mail, Globe, MapPin, User, ThumbsUp, MessageCircle, ExternalLink, Calendar, TrendingUp, Users, Award, BarChart3, Shield, Filter, ChevronDown, Copy, Check } from 'lucide-react';
 
 const CompanyDetails = ({ company, reviews, reviewsLoading, onBackToList }) => {
   const [selectedReviewFilter, setSelectedReviewFilter] = useState('all');
   const [sortBy, setSortBy] = useState('recent');
-  const [activeTab, setActiveTab] = useState('all'); // 'all', 'positive', 'negative'
+  const [activeTab, setActiveTab] = useState('all');
+  const [copiedField, setCopiedField] = useState(null);
   
   const renderStars = (rating, size = 'w-3 h-3') => {
     const stars = [];
@@ -25,18 +26,18 @@ const CompanyDetails = ({ company, reviews, reviewsLoading, onBackToList }) => {
 
   const getTrustScoreColor = (score) => {
     if (typeof score === 'number') {
-      if (score >= 4.5) return 'bg-green-50 text-green-700 border border-green-200';
-      if (score >= 4.0) return 'bg-blue-50 text-blue-700 border border-blue-200';
-      if (score >= 3.0) return 'bg-yellow-50 text-yellow-700 border border-yellow-200';
-      if (score >= 2.0) return 'bg-orange-50 text-orange-700 border border-orange-200';
-      return 'bg-red-50 text-red-700 border border-red-200';
+      if (score >= 4.5) return 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700';
+      if (score >= 4.0) return 'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700';
+      if (score >= 3.0) return 'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700';
+      if (score >= 2.0) return 'bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700';
+      return 'bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700';
     }
     
     switch(score) {
-      case 'Excellent': return 'bg-green-50 text-green-700 border border-green-200';
-      case 'Très bien': return 'bg-blue-50 text-blue-700 border border-blue-200';
-      case 'Bien': return 'bg-yellow-50 text-yellow-700 border border-yellow-200';
-      default: return 'bg-gray-50 text-gray-700 border border-gray-200';
+      case 'Excellent': return 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700';
+      case 'Très bien': return 'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700';
+      case 'Bien': return 'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700';
+      default: return 'bg-gray-50 text-gray-700 border border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600';
     }
   };
 
@@ -52,12 +53,9 @@ const CompanyDetails = ({ company, reviews, reviewsLoading, onBackToList }) => {
   };
 
   const formatDate = (dateString) => {
-    // Gestion des différents formats de date
     if (dateString.includes(' ')) {
-      // Format "08 novembre 2021"
       return dateString;
     } else {
-      // Format ISO standard
       const date = new Date(dateString);
       return date.toLocaleDateString('fr-FR', { 
         year: 'numeric', 
@@ -76,7 +74,6 @@ const CompanyDetails = ({ company, reviews, reviewsLoading, onBackToList }) => {
     return `${months} mois`;
   };
 
-  // Fonction pour calculer la distribution des étoiles depuis sentimentDistribution
   const calculateStarDistribution = (sentimentDistribution) => {
     if (!sentimentDistribution) return null;
 
@@ -119,6 +116,13 @@ const CompanyDetails = ({ company, reviews, reviewsLoading, onBackToList }) => {
     };
   };
 
+  // Fonction pour copier le texte
+  const copyToClipboard = (text, field) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
   // Récupération des données depuis l'API
   const businessMetrics = company.businessMetrics || {};
   const socialMedia = company.socialMedia || {};
@@ -129,22 +133,19 @@ const CompanyDetails = ({ company, reviews, reviewsLoading, onBackToList }) => {
   const sentimentDistribution = businessMetrics.sentimentDistribution || company.sentimentDistribution || {};
   const similarCompanies = company.similarCompanies || [];
 
-  // Calculer la distribution des étoiles
   const starDistribution = calculateStarDistribution(sentimentDistribution);
 
-  // Fonction pour obtenir la couleur des barres
   const getBarColor = (stars) => {
     switch (stars) {
-      case 5: return 'bg-green-500';
+      case 5: return 'bg-emerald-500';
       case 4: return 'bg-lime-500';
-      case 3: return 'bg-yellow-500';
+      case 3: return 'bg-amber-500';
       case 2: return 'bg-orange-500';
       case 1: return 'bg-red-500';
       default: return 'bg-gray-400';
     }
   };
 
-  // Fonction pour obtenir les avis selon l'onglet actif
   const getReviewsByTab = () => {
     switch(activeTab) {
       case 'positive':
@@ -156,7 +157,6 @@ const CompanyDetails = ({ company, reviews, reviewsLoading, onBackToList }) => {
     }
   };
 
-  // Filtrage des avis selon le filtre sélectionné
   const getFilteredReviews = () => {
     let filtered = getReviewsByTab();
     
@@ -165,7 +165,6 @@ const CompanyDetails = ({ company, reviews, reviewsLoading, onBackToList }) => {
       filtered = enhancedReviews.filter(review => Math.floor(review.rating) === starFilter);
     }
 
-    // Tri des avis
     return filtered.sort((a, b) => {
       if (sortBy === 'recent') {
         return new Date(b.date) - new Date(a.date);
@@ -181,108 +180,211 @@ const CompanyDetails = ({ company, reviews, reviewsLoading, onBackToList }) => {
   const filteredReviews = getFilteredReviews();
 
   return (
-    <div className="dark:text-gray-100 dark:bg-gray-900 min-h-screen">
-      {/* Header avec bouton retour */}
-      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-600 px-6 py-4">
-        <button
-          onClick={onBackToList}
-          className="flex items-center text-green-600 hover:text-green-700 font-medium mb-2 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Retour à la recherche
-        </button>
-        <div className="flex items-start justify-between">
-          <div className="flex items-start space-x-4">
-            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center text-2xl overflow-hidden">
-              {businessMetrics.logo_url ? (
-                <img src={businessMetrics.logo_url} alt={company.name} className="w-full h-full object-cover" />
-              ) : (
-                company.logo || company.name?.charAt(0) || '🏢'
-              )}
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">
-                {company.name}
-              </h1>
-              <div className="flex items-center space-x-4 mb-2">
-                <div className="flex items-center">
-                  {renderStars(businessMetrics.trustscore || company.rating || 0, 'w-4 h-4')}
-                </div>
-                <span className="font-semibold text-lg text-gray-900 dark:text-gray-100">
-                  {(businessMetrics.trustscore || company.rating || 0).toFixed(1)}
-                </span>
-                <span className="text-gray-500">
-                  ({(businessMetrics.number_of_reviews || company.totalReviews || 0).toLocaleString()} avis)
-                </span>
-              </div>
-              <div className="flex items-center space-x-3 flex-wrap gap-2">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getTrustScoreColor(businessMetrics.trustscore || company.rating || 0)}`}>
-                  {getTrustScoreLabel(businessMetrics.trustscore || company.trustScore)}
-                </span>
-                <span className="text-sm text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
-                  {company.category || 'Entreprise'}
-                </span>
-                {businessMetrics.is_claimed && (
-                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full flex items-center">
-                    <Shield className="w-3 h-3 mr-1" />
-                    Profil revendiqué
-                  </span>
+    <div className="dark:text-gray-100 dark:bg-gray-900 min-h-screen bg-gray-50">
+      {/* Header moderne avec gradient subtil */}
+      <div className="bg-gradient-to-r from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="max-w-7xl mx-auto px-3 py-6">
+          <button
+            onClick={onBackToList}
+            className="flex items-center text-emerald-600 hover:text-emerald-700 font-medium mb-4 transition-colors group"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+            Retour à la recherche
+          </button>
+          
+          <div className="flex items-start justify-between">
+            <div className="flex items-start space-x-6">
+              <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-2xl shadow-lg flex items-center justify-center text-3xl overflow-hidden border border-gray-200 dark:border-gray-700">
+                {businessMetrics.logo_url ? (
+                  <img src={businessMetrics.logo_url} alt={company.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-gray-400">{company.logo || company.name?.charAt(0) || '🏢'}</span>
                 )}
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                  {company.name}
+                </h1>
+                <div className="flex items-center space-x-6 mb-3">
+                  <div className="flex items-center space-x-2">
+                    <div className="flex items-center">
+                      {renderStars(businessMetrics.trustscore || company.rating || 0, 'w-5 h-5')}
+                    </div>
+                    <span className="font-bold text-xl text-gray-900 dark:text-gray-100">
+                      {(businessMetrics.trustscore || company.rating || 0).toFixed(1)}
+                    </span>
+                    <span className="text-gray-500 font-medium">
+                      ({(businessMetrics.number_of_reviews || company.totalReviews || 0).toLocaleString()} avis)
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3 flex-wrap gap-2">
+                  <span className={`px-4 py-2 rounded-full text-sm font-semibold ${getTrustScoreColor(businessMetrics.trustscore || company.rating || 0)}`}>
+                    {getTrustScoreLabel(businessMetrics.trustscore || company.trustScore)}
+                  </span>
+                  {company.category && (
+                    <span className="text-sm text-indigo-700 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-300 px-3 py-2 rounded-full border border-indigo-200 dark:border-indigo-700 font-medium">
+                      {company.category}
+                    </span>
+                  )}
+                  {company.subCategory && (
+                    <span className="text-sm text-purple-700 bg-purple-50 dark:bg-purple-900/30 dark:text-purple-300 px-3 py-2 rounded-full border border-purple-200 dark:border-purple-700 font-medium">
+                      {company.subCategory}
+                    </span>
+                  )}
+                  {businessMetrics.is_claimed && (
+                    <span className="text-sm bg-blue-50 text-blue-700 px-3 py-2 rounded-full flex items-center border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700">
+                      <Shield className="w-4 h-4 mr-1" />
+                      Profil revendiqué
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="px-6 py-6">
+      <div className="max-w-8xl mx-auto px-3 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Informations de l'entreprise */}
+          {/* Sidebar avec informations de l'entreprise */}
           <div className="lg:col-span-1 space-y-6">
-            {/* Informations de contact */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                Informations de contact
-              </h3>
-              <div className="space-y-3">
+            {/* Informations de contact mises en valeur */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+              <div className="bg-gradient-to-r from-emerald-500 to-teal-600 p-6 text-white">
+                <h3 className="text-xl font-bold mb-2">Informations de contact</h3>
+                <p className="text-emerald-100 text-sm">Toutes les coordonnées de l'entreprise</p>
+              </div>
+              
+              <div className="p-6 space-y-4">
                 {company.address && (
-                  <div className="flex items-start space-x-3">
-                    <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                    <span className="text-sm text-gray-600 dark:text-gray-300">{company.address}</span>
+                  <div className="group hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl p-4 transition-colors cursor-pointer" 
+                       onClick={() => copyToClipboard(company.address, 'address')}>
+                    <div className="flex items-start space-x-4">
+                      <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <MapPin className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">Adresse</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{company.address}</p>
+                      </div>
+                      <div className="flex-shrink-0">
+                        {copiedField === 'address' ? (
+                          <Check className="w-4 h-4 text-emerald-500" />
+                        ) : (
+                          <Copy className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
+
                 {company.phone && (
-                  <div className="flex items-center space-x-3">
-                    <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    <span className="text-sm text-gray-600 dark:text-gray-300">{company.phone}</span>
+                  <div className="group hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl p-4 transition-colors cursor-pointer"
+                       onClick={() => copyToClipboard(company.phone, 'phone')}>
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <Phone className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">Téléphone</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 font-mono">{company.phone}</p>
+                      </div>
+                      <div className="flex-shrink-0">
+                        {copiedField === 'phone' ? (
+                          <Check className="w-4 h-4 text-emerald-500" />
+                        ) : (
+                          <Copy className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
+
                 {company.email && (
-                  <div className="flex items-center space-x-3">
-                    <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    <span className="text-sm text-gray-600 dark:text-gray-300">{company.email}</span>
+                  <div className="group hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl p-4 transition-colors cursor-pointer"
+                       onClick={() => copyToClipboard(company.email, 'email')}>
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <Mail className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">Email</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 font-mono">{company.email}</p>
+                      </div>
+                      <div className="flex-shrink-0">
+                        {copiedField === 'email' ? (
+                          <Check className="w-4 h-4 text-emerald-500" />
+                        ) : (
+                          <Copy className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
+
                 {(company.website || company.domain) && (
-                  <div className="flex items-center space-x-3">
-                    <Globe className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    <a href={company.website || `https://${company.domain}`} target="_blank" rel="noopener noreferrer" 
-                       className="text-sm text-blue-600 hover:text-blue-700 flex items-center">
-                      {company.domain || company.website}
-                      <ExternalLink className="w-3 h-3 ml-1" />
-                    </a>
+                  <div className="group hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl p-4 transition-colors">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <Globe className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">Site web</p>
+                        <a href={company.website || `https://${company.domain}`} 
+                           target="_blank" 
+                           rel="noopener noreferrer" 
+                           className="text-sm text-blue-600 hover:text-blue-700 flex items-center font-mono">
+                          {company.domain || company.website}
+                          <ExternalLink className="w-3 h-3 ml-2" />
+                        </a>
+                      </div>
+                    </div>
                   </div>
                 )}
                 
+                {/* Catégories */}
+                {(company.category || company.subCategory) && (
+                  <div className="group hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl p-4 transition-colors">
+                    <div className="flex items-start space-x-4">
+                      <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <Award className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Secteur d'activité</p>
+                        <div className="space-y-2">
+                          {company.category && (
+                            <div className="flex items-center space-x-2">
+                              <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Catégorie:</span>
+                              <span className="text-sm text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-1 rounded-md font-medium">
+                                {company.category}
+                              </span>
+                            </div>
+                          )}
+                          {company.subCategory && (
+                            <div className="flex items-center space-x-2">
+                              <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Sous-catégorie:</span>
+                              <span className="text-sm text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 px-2 py-1 rounded-md font-medium">
+                                {company.subCategory}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Complétude du profil */}
                 {businessMetrics.contact_completeness && (
-                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm text-gray-500">Complétude profil</span>
-                      <span className="text-sm font-medium">{businessMetrics.contact_completeness}%</span>
+                  <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-600">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Complétude du profil</span>
+                      <span className="text-sm font-bold text-gray-900 dark:text-gray-100">{businessMetrics.contact_completeness}%</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
                       <div 
-                        className="bg-green-500 h-2 rounded-full" 
+                        className="bg-gradient-to-r from-emerald-500 to-teal-600 h-3 rounded-full transition-all duration-500" 
                         style={{width: `${businessMetrics.contact_completeness}%`}}
                       ></div>
                     </div>
@@ -291,148 +393,117 @@ const CompanyDetails = ({ company, reviews, reviewsLoading, onBackToList }) => {
               </div>
             </div>
 
-            {/* Statistiques de l'entreprise */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                Statistiques
-              </h3>
-              <div className="space-y-3">
+            {/* Statistiques améliorées */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 text-white">
+                <h3 className="text-xl font-bold mb-2">Statistiques</h3>
+                <p className="text-blue-100 text-sm">Données de performance de l'entreprise</p>
+              </div>
+              
+              <div className="p-6 space-y-4">
                 {businessMetrics.business_age_days && (
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-500 flex items-center">
-                      <Calendar className="w-4 h-4 mr-2" />
-                      Âge de l'entreprise
-                    </span>
-                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <Calendar className="w-5 h-5 text-gray-500" />
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Âge de l'entreprise</span>
+                    </div>
+                    <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
                       {formatBusinessAge(businessMetrics.business_age_days)}
                     </span>
                   </div>
                 )}
                 
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-500 flex items-center">
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    Total avis
-                  </span>
-                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <MessageCircle className="w-5 h-5 text-emerald-500" />
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total avis</span>
+                  </div>
+                  <span className="text-sm font-bold text-emerald-600">
                     {(businessMetrics.number_of_reviews || 0).toLocaleString()}
                   </span>
                 </div>
 
                 {businessMetrics.avg_reviews_per_month && (
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-500 flex items-center">
-                      <TrendingUp className="w-4 h-4 mr-2" />
-                      Avis/mois (moy.)
-                    </span>
-                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {businessMetrics.avg_reviews_per_month.toFixed(2)}
-                    </span>
-                  </div>
-                )}
-
-                {businessMetrics.reviews_last_30_days !== undefined && (
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-500">Avis (30 derniers jours)</span>
-                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {businessMetrics.reviews_last_30_days}
+                  <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <TrendingUp className="w-5 h-5 text-blue-500" />
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Avis/mois (moy.)</span>
+                    </div>
+                    <span className="text-sm font-bold text-blue-600">
+                      {businessMetrics.avg_reviews_per_month.toFixed(1)}
                     </span>
                   </div>
                 )}
 
                 {businessMetrics.response_rate !== undefined && (
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-500">Taux de réponse</span>
-                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <Users className="w-5 h-5 text-purple-500" />
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Taux de réponse</span>
+                    </div>
+                    <span className="text-sm font-bold text-purple-600">
                       {Math.round(businessMetrics.response_rate)}%
                     </span>
                   </div>
                 )}
 
                 {businessMetrics.verified_reviews_count !== undefined && (
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-500 flex items-center">
-                      <Shield className="w-4 h-4 mr-2" />
-                      Avis vérifiés
-                    </span>
-                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <Shield className="w-5 h-5 text-green-500" />
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Avis vérifiés</span>
+                    </div>
+                    <span className="text-sm font-bold text-green-600">
                       {businessMetrics.verified_reviews_count}
-                    </span>
-                  </div>
-                )}
-
-                {socialMedia.has_social_media !== undefined && (
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-500">Réseaux sociaux</span>
-                    <span className={`text-sm font-medium ${socialMedia.has_social_media ? 'text-green-600' : 'text-gray-500'}`}>
-                      {socialMedia.has_social_media ? 'Oui' : 'Non'}
                     </span>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Distribution des étoiles basée sur sentimentDistribution */}
+            {/* Distribution des étoiles modernisée */}
             {starDistribution && (
-              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                  Répartition des notes
-                </h3>
-                <div className="space-y-3">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div className="bg-gradient-to-r from-amber-500 to-orange-600 p-6 text-white">
+                  <h3 className="text-xl font-bold mb-2">Répartition des notes</h3>
+                  <p className="text-amber-100 text-sm">Distribution des avis par étoiles</p>
+                </div>
+                
+                <div className="p-6 space-y-4">
                   {[5, 4, 3, 2, 1].map(stars => (
-                    <div key={stars} className="flex items-center space-x-3">
-                      <div className="flex items-center w-12">
-                        <span className="text-xs text-gray-600 dark:text-gray-300 mr-1">{stars}</span>
-                        <Star className="w-3 h-3 text-yellow-400" />
+                    <div key={stars} className="flex items-center space-x-4">
+                      <div className="flex items-center w-16">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">{stars}</span>
+                        <Star className="w-4 h-4 text-amber-400" />
                       </div>
-                      <div className="flex-1 bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                      <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-3">
                         <div
-                          className={`h-full rounded-full ${getBarColor(stars)} transition-all duration-300`}
+                          className={`h-full rounded-full ${getBarColor(stars)} transition-all duration-500`}
                           style={{ width: `${starDistribution[stars].percentage}%` }}
                         ></div>
                       </div>
-                      <div className="flex items-center space-x-2 text-xs text-gray-600 dark:text-gray-300 w-24">
-                        <span>{starDistribution[stars].count}</span>
+                      <div className="flex items-center space-x-3 text-sm text-gray-600 dark:text-gray-300 w-28">
+                        <span className="font-medium">{starDistribution[stars].count}</span>
                         <span className="text-gray-400">({starDistribution[stars].percentage.toFixed(1)}%)</span>
                       </div>
                     </div>
                   ))}
                 </div>
-                
-                {/* Informations sur les mots moyens */}
-                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
-                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                    Mots moyens par avis ({starDistribution.total} avis total)
-                  </h4>
-                  <div className="grid grid-cols-5 gap-2 text-xs">
-                    {[5, 4, 3, 2, 1].map(stars => (
-                      <div key={stars} className="text-center">
-                        <div className="flex items-center justify-center mb-1">
-                          <span className="mr-1">{stars}</span>
-                          <Star className="w-2 h-2 text-yellow-400" />
-                        </div>
-                        <div className="text-gray-500 dark:text-gray-400">
-                          {starDistribution[stars].avgWords.toFixed(1)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
             )}
           </div>
 
-          {/* Avis clients avec onglets */}
+          {/* Section avis modernisée */}
           <div className="lg:col-span-2">
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
-              <div className="p-6 border-b border-gray-200 dark:border-gray-600">
-                {/* Onglets de navigation */}
-                <div className="flex items-center space-x-1 mb-4 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                {/* Onglets modernisés */}
+                <div className="flex items-center space-x-1 mb-6 p-1 bg-gray-100 dark:bg-gray-700 rounded-xl">
                   <button
                     onClick={() => setActiveTab('all')}
-                    className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                    className={`flex-1 px-6 py-3 text-sm font-semibold rounded-lg transition-all ${
                       activeTab === 'all'
-                        ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
+                        ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm'
                         : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
                     }`}
                   >
@@ -440,44 +511,44 @@ const CompanyDetails = ({ company, reviews, reviewsLoading, onBackToList }) => {
                   </button>
                   <button
                     onClick={() => setActiveTab('positive')}
-                    className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                    className={`flex-1 px-6 py-3 text-sm font-semibold rounded-lg transition-all ${
                       activeTab === 'positive'
-                        ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
+                        ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm'
                         : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
                     }`}
                   >
-                    <span className="flex items-center">
-                      <Star className="w-4 h-4 mr-1 fill-green-500 text-green-500" />
+                    <span className="flex items-center justify-center">
+                      <Star className="w-4 h-4 mr-2 fill-emerald-500 text-emerald-500" />
                       Positifs ({fiveStarReviews.length})
                     </span>
                   </button>
                   <button
                     onClick={() => setActiveTab('negative')}
-                    className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                    className={`flex-1 px-6 py-3 text-sm font-semibold rounded-lg transition-all ${
                       activeTab === 'negative'
-                        ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm'
+                        ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm'
                         : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
                     }`}
                   >
-                    <span className="flex items-center">
-                      <Star className="w-4 h-4 mr-1 fill-red-500 text-red-500" />
+                    <span className="flex items-center justify-center">
+                      <Star className="w-4 h-4 mr-2 fill-red-500 text-red-500" />
                       Négatifs ({oneStarReviews.length})
                     </span>
                   </button>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                     {activeTab === 'all' && `Tous les avis (${filteredReviews.length})`}
                     {activeTab === 'positive' && `Avis positifs (${filteredReviews.length})`}
                     {activeTab === 'negative' && `Avis négatifs (${filteredReviews.length})`}
                   </h3>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-3">
                     {activeTab === 'all' && (
                       <select 
                         value={selectedReviewFilter}
                         onChange={(e) => setSelectedReviewFilter(e.target.value)}
-                        className="text-sm border border-gray-300 dark:border-gray-500 rounded-md px-2 py-1 bg-white dark:bg-gray-700 dark:text-gray-100"
+                        className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 bg-white dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                       >
                         <option value="all">Toutes les notes</option>
                         <option value="5">5 étoiles</option>
@@ -490,7 +561,7 @@ const CompanyDetails = ({ company, reviews, reviewsLoading, onBackToList }) => {
                     <select 
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
-                      className="text-sm border border-gray-300 dark:border-gray-500 rounded-md px-2 py-1 bg-white dark:bg-gray-700 dark:text-gray-100"
+                      className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 bg-white dark:bg-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     >
                       <option value="recent">Plus récents</option>
                       <option value="rating">Mieux notés</option>
@@ -502,25 +573,25 @@ const CompanyDetails = ({ company, reviews, reviewsLoading, onBackToList }) => {
 
               <div className="p-6">
                 {reviewsLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-500"></div>
-                    <span className="ml-3 text-sm text-gray-600 dark:text-gray-400">Chargement des avis...</span>
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+                    <span className="ml-4 text-gray-600 dark:text-gray-400">Chargement des avis...</span>
                   </div>
                 ) : filteredReviews.length > 0 ? (
                   <div className="space-y-6">
                     {/* Badge d'information pour les avis filtrés */}
                     {activeTab !== 'all' && (
-                      <div className={`p-3 rounded-lg border-l-4 ${
+                      <div className={`p-4 rounded-xl border-l-4 ${
                         activeTab === 'positive' 
-                          ? 'bg-green-50 border-green-400 dark:bg-green-900/20' 
-                          : 'bg-red-50 border-red-400 dark:bg-red-900/20'
+                          ? 'bg-emerald-50 border-emerald-400 dark:bg-emerald-900/20 dark:border-emerald-500' 
+                          : 'bg-red-50 border-red-400 dark:bg-red-900/20 dark:border-red-500'
                       }`}>
                         <div className="flex items-center">
-                          <Star className={`w-4 h-4 mr-2 ${
-                            activeTab === 'positive' ? 'text-green-600' : 'text-red-600'
+                          <Star className={`w-5 h-5 mr-3 ${
+                            activeTab === 'positive' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
                           }`} />
-                          <p className={`text-sm ${
-                            activeTab === 'positive' ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'
+                          <p className={`text-sm font-medium ${
+                            activeTab === 'positive' ? 'text-emerald-800 dark:text-emerald-200' : 'text-red-800 dark:text-red-200'
                           }`}>
                             {activeTab === 'positive' 
                               ? `Affichage des ${fiveStarReviews.length} avis les mieux notés (5 étoiles)`
@@ -532,44 +603,43 @@ const CompanyDetails = ({ company, reviews, reviewsLoading, onBackToList }) => {
                     )}
 
                     {filteredReviews.map((review, index) => (
-                      <div key={`${activeTab}-${index}`} className="border-b border-gray-100 dark:border-gray-600 pb-6 last:border-b-0 last:pb-0">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                              <User className="w-4 h-4 text-gray-500" />
+                      <div key={`${activeTab}-${index}`} className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 hover:shadow-md transition-shadow">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center space-x-4">
+                            <div className="w-12 h-12 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full flex items-center justify-center shadow-lg">
+                              <User className="w-6 h-6 text-white" />
                             </div>
                             <div>
-                              <div className="flex items-center space-x-2">
-                                <span className="font-medium text-sm text-gray-900 dark:text-gray-100">
+                              <div className="flex items-center space-x-3 mb-2">
+                                <span className="font-semibold text-gray-900 dark:text-gray-100">
                                   Client anonyme
                                 </span>
                                 {review.is_verified === "True" && (
-                                  <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full">
-                                    Vérifié
+                                  <span className="bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-medium dark:bg-emerald-900/30 dark:text-emerald-300">
+                                    ✓ Vérifié
                                   </span>
                                 )}
-                                {/* Badge de sentiment selon l'onglet */}
                                 {activeTab === 'positive' && (
-                                  <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full">
+                                  <span className="bg-emerald-100 text-emerald-800 text-xs px-3 py-1 rounded-full font-medium dark:bg-emerald-900/30 dark:text-emerald-300">
                                     Positif
                                   </span>
                                 )}
                                 {activeTab === 'negative' && (
-                                  <span className="bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded-full">
+                                  <span className="bg-red-100 text-red-800 text-xs px-3 py-1 rounded-full font-medium dark:bg-red-900/30 dark:text-red-300">
                                     Négatif
                                   </span>
                                 )}
                               </div>
-                              <div className="flex items-center space-x-2 mt-1">
-                                <div className="flex">
-                                  {renderStars(review.rating, 'w-3 h-3')}
+                              <div className="flex items-center space-x-3">
+                                <div className="flex items-center">
+                                  {renderStars(review.rating, 'w-4 h-4')}
                                 </div>
-                                <span className="text-xs text-gray-500">
+                                <span className="text-sm text-gray-500 dark:text-gray-400">
                                   {formatDate(review.date)}
                                 </span>
                                 {review.word_count && (
-                                  <span className="text-xs text-gray-400">
-                                    ({review.word_count} mots)
+                                  <span className="text-sm text-gray-400 dark:text-gray-500">
+                                    {review.word_count} mots
                                   </span>
                                 )}
                               </div>
@@ -578,20 +648,20 @@ const CompanyDetails = ({ company, reviews, reviewsLoading, onBackToList }) => {
                         </div>
                         
                         {review.title && review.has_title === "True" && (
-                          <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
+                          <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-lg">
                             {review.title}
                           </h4>
                         )}
-                        <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-3">
+                        <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4 bg-white dark:bg-gray-800 p-4 rounded-lg">
                           {review.text}
                         </p>
                         
-                        <div className="flex items-center space-x-4">
-                          <button className="flex items-center space-x-1 text-xs text-gray-500 hover:text-gray-700 transition-colors">
-                            <ThumbsUp className="w-3 h-3" />
+                        <div className="flex items-center space-x-6">
+                          <button className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors group">
+                            <ThumbsUp className="w-4 h-4 group-hover:scale-110 transition-transform" />
                             <span>Utile ({review.helpful_votes || 0})</span>
                           </button>
-                          <button className="text-xs text-gray-500 hover:text-gray-700 transition-colors">
+                          <button className="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
                             Signaler
                           </button>
                         </div>
@@ -599,15 +669,17 @@ const CompanyDetails = ({ company, reviews, reviewsLoading, onBackToList }) => {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8">
-                    <MessageCircle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <MessageCircle className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
                       {activeTab === 'all' && selectedReviewFilter === 'all' && 'Aucun avis disponible'}
                       {activeTab === 'all' && selectedReviewFilter !== 'all' && `Aucun avis avec ${selectedReviewFilter} étoile${selectedReviewFilter > 1 ? 's' : ''}`}
                       {activeTab === 'positive' && 'Aucun avis positif disponible'}
                       {activeTab === 'negative' && 'Aucun avis négatif disponible'}
                     </h4>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-gray-500 dark:text-gray-400">
                       {activeTab === 'all' && selectedReviewFilter === 'all' && 'Soyez le premier à laisser un avis pour cette entreprise.'}
                       {activeTab === 'all' && selectedReviewFilter !== 'all' && 'Essayez un autre filtre pour voir plus d\'avis.'}
                       {activeTab === 'positive' && 'Cette entreprise n\'a pas encore d\'avis 5 étoiles.'}
@@ -618,22 +690,21 @@ const CompanyDetails = ({ company, reviews, reviewsLoading, onBackToList }) => {
               </div>
             </div>
 
-            {/* Entreprises similaires */}
+            {/* Entreprises similaires modernisées */}
             {similarCompanies.length > 0 && (
-              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 mt-6">
-                <div className="p-6 border-b border-gray-200 dark:border-gray-600">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    Entreprises similaires
-                  </h3>
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 mt-8 overflow-hidden">
+                <div className="bg-gradient-to-r from-purple-500 to-pink-600 p-6 text-white">
+                  <h3 className="text-xl font-bold mb-2">Entreprises similaires</h3>
+                  <p className="text-purple-100 text-sm">Découvrez d'autres entreprises du même secteur</p>
                 </div>
                 <div className="p-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {similarCompanies.slice(0, 6).map((similar, index) => (
-                      <div key={index} className="border border-gray-200 dark:border-gray-600 rounded-lg p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">
+                      <div key={index} className="border border-gray-200 dark:border-gray-600 rounded-xl p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all hover:shadow-md cursor-pointer group">
+                        <div className="font-semibold text-gray-900 dark:text-gray-100 mb-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                           {similar.name.split(/(\d+\.\d+)/)[0]}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
                           {similar.name}
                         </div>
                       </div>
@@ -646,19 +717,19 @@ const CompanyDetails = ({ company, reviews, reviewsLoading, onBackToList }) => {
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="bg-white border-t border-gray-200 dark:border-gray-600 mt-8 dark:bg-gray-900">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between text-xs text-gray-500">
-            <div className="flex items-center space-x-4">
-              <span>© 2025 Trustpilot Clone</span>
-              <a href="#" className="hover:text-gray-700">Confidentialité</a>
-              <a href="#" className="hover:text-gray-700">Conditions</a>
+      {/* Footer modernisé */}
+      <div className="bg-white border-t border-gray-200 dark:border-gray-700 mt-12 dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-3 py-6">
+          <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex items-center space-x-6">
+              <span className="font-medium">© 2025 Shadowtpilot </span>
+              <a href="#" className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">Politique de confidentialité</a>
+              <a href="#" className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">Conditions d'utilisation</a>
             </div>
-            <div className="flex items-center space-x-2">
-              <span>Intégré dans DataPull</span>
-              <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                <Star className="w-2 h-2 text-white fill-white" />
+            <div className="flex items-center space-x-3">
+              <span className="font-medium">Intégré dans DataPull</span>
+              <div className="w-6 h-6 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full flex items-center justify-center shadow-lg">
+                <Star className="w-3 h-3 text-white fill-white" />
               </div>
             </div>
           </div>
