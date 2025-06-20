@@ -308,8 +308,9 @@ const DualRangeSlider = ({
 };
 
 const CompanySearch = ({
-  defaultCompanies = [],
   onViewCompanyDetails = () => {},
+  initialSearchResults = [],
+  initialSearchState = null,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("recent");
@@ -523,7 +524,7 @@ const CompanySearch = ({
   // Fonction pour effectuer une recherche simple par nom
   const handleSimpleSearch = async () => {
     if (!searchTerm.trim()) {
-      setSearchResults(defaultCompanies);
+      setSearchResults([]);
       setHasAdvancedSearch(false);
       return;
     }
@@ -608,16 +609,40 @@ const CompanySearch = ({
   };
 
   useEffect(() => {
-    setSearchResults(defaultCompanies);
-    setTotalResults(defaultCompanies.length);
-    setTotalPages(1);
-  }, [defaultCompanies]);
+    // Restaurer l'état de recherche précédent si disponible
+    if (initialSearchResults.length > 0 && initialSearchState) {
+      setSearchResults(initialSearchResults);
+      setSearchTerm(initialSearchState.searchTerm);
+      setCurrentPage(initialSearchState.currentPage);
+      setTotalPages(initialSearchState.totalPages);
+      setTotalResults(initialSearchState.totalResults);
+      setHasAdvancedSearch(initialSearchState.hasAdvancedSearch);
+      if (initialSearchState.advancedSearchParams) {
+        setAdvancedSearchParams(initialSearchState.advancedSearchParams);
+      }
+    } else {
+      // Initialiser avec un tableau vide au lieu des données par défaut
+      setSearchResults([]);
+      setTotalResults(0);
+      setTotalPages(0);
+    }
+  }, [initialSearchResults, initialSearchState]);
 
   useEffect(() => {
     if (hasAdvancedSearch) {
       handleAdvancedSearchWithPage(0, false);
     }
   }, [pageSize]);
+
+  // Fonction pour obtenir l'état de recherche actuel
+  const getCurrentSearchState = () => ({
+    searchTerm,
+    currentPage,
+    totalPages,
+    totalResults,
+    hasAdvancedSearch,
+    advancedSearchParams: hasAdvancedSearch ? advancedSearchParams : null
+  });
 
   const handlePageChange = (newPage) => {
     if (hasAdvancedSearch) {
@@ -711,7 +736,7 @@ const CompanySearch = ({
       return rangeWithDots;
     };
 
-    return (
+        return (
       <div className="flex items-center justify-between border-t dark:border-gray-600 border-gray-100 bg-white px-4 py-3 sm:px-6 dark:bg-gray-900">
         <div className="flex flex-1 justify-between sm:hidden">
           <button
@@ -1239,7 +1264,7 @@ const CompanySearch = ({
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               {searchResults.length > 0
                 ? "Résultats de recherche"
-                : "Entreprises populaires"}
+                : "Commencez votre recherche"}
             </h3>
             {totalResults > 0 && (
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -1249,18 +1274,6 @@ const CompanySearch = ({
             )}
           </div>
           <div className="flex items-center gap-3">
-            {/*
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="p-2 text-sm border border-gray-300 dark:border-gray-500 rounded-md focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-900"
-            >
-              <option value="recent">Plus récent</option>
-              <option value="rating">Mieux notés</option>
-              <option value="reviews">Plus d'avis</option>
-              <option value="_score">Pertinence</option>
-            </select>*/}
-
             {/* Bouton d'export supplémentaire dans la barre d'outils */}
             <button
               onClick={handleExportCSV}
@@ -1291,7 +1304,7 @@ const CompanySearch = ({
               searchResults.map((company, index) => (
                 <div
                   key={company.id || index}
-                  onClick={() => onViewCompanyDetails(company)}
+                  onClick={() => onViewCompanyDetails(company, searchResults, getCurrentSearchState())}
                   className="group bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all duration-300 p-6 cursor-pointer hover:shadow-xl hover:shadow-emerald-100 dark:hover:shadow-emerald-900/20 transform hover:-translate-y-1"
                 >
                   <div className="flex items-start justify-between">
@@ -1426,9 +1439,6 @@ const CompanySearch = ({
                             )}
                           </div>
                         )}
-
-                        {/* Métriques supplémentaires */}
-                        
                       </div>
                     </div>
 
@@ -1533,20 +1543,17 @@ const CompanySearch = ({
                   </div>
                 </div>
                 <h4 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">
-                  Aucun résultat trouvé
+                  Commencez votre recherche
                 </h4>
                 <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                  Aucune entreprise ne correspond à vos critères de recherche.
-                  Essayez de modifier vos filtres ou utilisez la recherche
-                  avancée.
+                  Utilisez la barre de recherche ci-dessus pour trouver des entreprises ou explorez avec la recherche avancée.
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-4">
-                  <button className="flex items-center space-x-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl">
+                  <button 
+                    onClick={() => setShowAdvancedSearch(true)}
+                    className="flex items-center space-x-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl">
                     <Star className="w-4 h-4" />
                     <span>Recherche avancée</span>
-                  </button>
-                  <button className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 px-6 py-3 rounded-xl font-medium transition-colors">
-                    <span>Réinitialiser les filtres</span>
                   </button>
                 </div>
               </div>
