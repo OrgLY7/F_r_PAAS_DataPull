@@ -641,7 +641,7 @@ const CompanySearch = ({
     totalPages,
     totalResults,
     hasAdvancedSearch,
-    advancedSearchParams: hasAdvancedSearch ? advancedSearchParams : null
+    advancedSearchParams: hasAdvancedSearch ? advancedSearchParams : null,
   });
 
   const handlePageChange = (newPage) => {
@@ -676,31 +676,39 @@ const CompanySearch = ({
     return stars;
   };
 
- const getTrustScoreColor = (score) => {
-    if (typeof score === 'number') {
-      if (score >= 4.5) return 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700';
-      if (score >= 4.0) return 'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700';
-      if (score >= 3.0) return 'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700';
-      if (score >= 2.0) return 'bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700';
-      return 'bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700';
+  const getTrustScoreColor = (score) => {
+    if (typeof score === "number") {
+      if (score >= 4.5)
+        return "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700";
+      if (score >= 4.0)
+        return "bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700";
+      if (score >= 3.0)
+        return "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700";
+      if (score >= 2.0)
+        return "bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700";
+      return "bg-red-50 text-red-700 border border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700";
     }
-    
-    switch(score) {
-      case 'Excellent': return 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700';
-      case 'Très bien': return 'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700';
-      case 'Bien': return 'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700';
-      default: return 'bg-gray-50 text-gray-700 border border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600';
+
+    switch (score) {
+      case "Excellent":
+        return "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700";
+      case "Très bien":
+        return "bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700";
+      case "Bien":
+        return "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-700";
+      default:
+        return "bg-gray-50 text-gray-700 border border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600";
     }
   };
-    const getTrustScoreLabel = (score) => {
-    if (typeof score === 'number') {
-      if (score >= 4.5) return 'Excellent';
-      if (score >= 4.0) return 'Très bien';
-      if (score >= 3.0) return 'Bien';
-      if (score >= 2.0) return 'Moyen';
-      return 'Mauvais';
+  const getTrustScoreLabel = (score) => {
+    if (typeof score === "number") {
+      if (score >= 4.5) return "Excellent";
+      if (score >= 4.0) return "Très bien";
+      if (score >= 3.0) return "Bien";
+      if (score >= 2.0) return "Moyen";
+      return "Mauvais";
     }
-    return score || 'Non évalué';
+    return score || "Non évalué";
   };
 
   const Pagination = () => {
@@ -736,7 +744,7 @@ const CompanySearch = ({
       return rangeWithDots;
     };
 
-        return (
+    return (
       <div className="flex items-center justify-between border-t dark:border-gray-600 border-gray-100 bg-white px-4 py-3 sm:px-6 dark:bg-gray-900">
         <div className="flex flex-1 justify-between sm:hidden">
           <button
@@ -821,7 +829,6 @@ const CompanySearch = ({
   };
 
   return (
-    
     <div className="dark:text-gray-100 dark:bg-gray-900">
       {/* Modal de progression d'export */}
       <ExportProgressModal />
@@ -1192,8 +1199,6 @@ const CompanySearch = ({
                         placeholder="Rechercher dans le contenu des avis"
                       />
                     </div>
-
-                  
                   </div>
                 </div>
               </div>
@@ -1304,14 +1309,20 @@ const CompanySearch = ({
               searchResults.map((company, index) => (
                 <div
                   key={company.id || index}
-                  onClick={() => onViewCompanyDetails(company, searchResults, getCurrentSearchState())}
+                  onClick={() =>
+                    onViewCompanyDetails(
+                      company,
+                      searchResults,
+                      getCurrentSearchState()
+                    )
+                  }
                   className="group bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all duration-300 p-6 cursor-pointer hover:shadow-xl hover:shadow-emerald-100 dark:hover:shadow-emerald-900/20 transform hover:-translate-y-1"
                 >
                   <div className="flex items-start justify-between">
-                    <div className="flex items-start space-x-4">
+                    <div className="flex items-start space-x-4 min-w-0 flex-1">
                       {/* Logo de l'entreprise amélioré */}
-                      <div className="relative">
-                        <div className="w-16 h-16 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-2xl flex items-center justify-center text-xl flex-shrink-0 border border-emerald-200 dark:border-emerald-700 shadow-sm">
+                      <div className="relative flex-shrink-0">
+                        <div className="w-16 h-16 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-2xl flex items-center justify-center text-xl border border-emerald-200 dark:border-emerald-700 shadow-sm">
                           {company?.businessMetrics?.logo_url ? (
                             <img
                               src={company.businessMetrics?.logo_url}
@@ -1332,12 +1343,15 @@ const CompanySearch = ({
 
                       <div className="flex-1 min-w-0">
                         {/* Nom de l'entreprise */}
-                        <div className="flex items-center space-x-3 mb-3">
-                          <h4 className="text-lg font-bold text-gray-900 dark:text-gray-100 truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                        <div className="flex items-center space-x-3 mb-3 flex-wrap">
+                          <h4
+                            className="text-lg font-bold text-gray-900 dark:text-gray-100 truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors"
+                            title={company.name}
+                          >
                             {company.name || "Nom non disponible"}
                           </h4>
                           {company.verified && (
-                            <div className="flex items-center space-x-1 bg-blue-100 dark:bg-blue-900/30 px-2 py-1 rounded-full">
+                            <div className="flex items-center space-x-1 bg-blue-100 dark:bg-blue-900/30 px-2 py-1 rounded-full flex-shrink-0">
                               <Star className="w-3 h-3 text-blue-600 dark:text-blue-400" />
                               <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
                                 Vérifié
@@ -1347,8 +1361,8 @@ const CompanySearch = ({
                         </div>
 
                         {/* Évaluation et avis */}
-                        <div className="flex items-center space-x-4 mb-4">
-                          <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-4 mb-4 flex-wrap">
+                          <div className="flex items-center space-x-2 flex-shrink-0">
                             <div className="flex items-center bg-amber-50 dark:bg-amber-900/20 px-3 py-1 rounded-full">
                               {renderStars(
                                 company.businessMetrics?.trustscore ||
@@ -1364,7 +1378,7 @@ const CompanySearch = ({
                               ).toFixed(1)}
                             </span>
                           </div>
-                          <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
+                          <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 flex-shrink-0">
                             <Star className="w-4 h-4" />
                             <span className="text-sm font-medium">
                               {(
@@ -1379,29 +1393,42 @@ const CompanySearch = ({
 
                         {/* Tags et informations */}
                         <div className="flex items-center flex-wrap gap-2 mb-4">
-                          <span className={`px-4 py-2 rounded-full text-sm font-semibold ${getTrustScoreColor(company.trustscore || 0)}`}>
-                    {getTrustScoreLabel(company.trustscore)}
-                  </span>
+                          <span
+                            className={`px-4 py-2 rounded-full text-sm font-semibold flex-shrink-0 ${getTrustScoreColor(
+                              company.trustscore || 0
+                            )}`}
+                          >
+                            {getTrustScoreLabel(company.trustscore)}
+                          </span>
                           {company.address && (
-                            <div className="flex items-center space-x-1 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
-                              <MapPin className="w-3 h-3 text-gray-500" />
-                              <span className="text-sm text-gray-700 dark:text-gray-300">
+                            <div className="flex items-center space-x-1 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full flex-shrink-0 max-w-[200px]">
+                              <MapPin className="w-3 h-3 text-gray-500 flex-shrink-0" />
+                              <span
+                                className="text-sm text-gray-700 dark:text-gray-300 truncate"
+                                title={company.address}
+                              >
                                 {company.address}
                               </span>
                             </div>
                           )}
                           {company.domain && (
-                            <div className="flex items-center space-x-1 bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full">
-                              <Globe className="w-3 h-3 text-blue-600 dark:text-blue-400" />
-                              <span className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                            <div className="flex items-center space-x-1 bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full flex-shrink-0 max-w-[150px]">
+                              <Globe className="w-3 h-3 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                              <span
+                                className="text-sm text-blue-600 dark:text-blue-400 font-medium truncate"
+                                title={company.domain}
+                              >
                                 {company.domain}
                               </span>
                             </div>
                           )}
                           {company.category && (
-                            <div className="flex items-center space-x-1 bg-purple-100 dark:bg-purple-900/30 px-3 py-1 rounded-full">
-                              <Star className="w-3 h-3 text-purple-600 dark:text-purple-400" />
-                              <span className="text-sm text-purple-600 dark:text-purple-400 font-medium">
+                            <div className="flex items-center space-x-1 bg-purple-100 dark:bg-purple-900/30 px-3 py-1 rounded-full flex-shrink-0 max-w-[120px]">
+                              <Star className="w-3 h-3 text-purple-600 dark:text-purple-400 flex-shrink-0" />
+                              <span
+                                className="text-sm text-purple-600 dark:text-purple-400 font-medium truncate"
+                                title={company.category}
+                              >
                                 {company.category}
                               </span>
                             </div>
@@ -1414,25 +1441,34 @@ const CompanySearch = ({
                           company.website) && (
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
                             {company.phone && (
-                              <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700/50 px-3 py-2 rounded-lg">
-                                <Phone className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                                <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+                              <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700/50 px-3 py-2 rounded-lg min-w-0">
+                                <Phone className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                                <span
+                                  className="text-sm text-gray-700 dark:text-gray-300 font-medium truncate"
+                                  title={company.phone}
+                                >
                                   {company.phone}
                                 </span>
                               </div>
                             )}
                             {company.email && (
-                              <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700/50 px-3 py-2 rounded-lg">
-                                <Mail className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                                <span className="text-sm text-gray-700 dark:text-gray-300 font-medium truncate">
+                              <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700/50 px-3 py-2 rounded-lg min-w-0">
+                                <Mail className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                                <span
+                                  className="text-sm text-gray-700 dark:text-gray-300 font-medium truncate"
+                                  title={company.email}
+                                >
                                   {company.email}
                                 </span>
                               </div>
                             )}
                             {company.website && (
-                              <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700/50 px-3 py-2 rounded-lg">
-                                <ExternalLink className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                                <span className="text-sm text-gray-700 dark:text-gray-300 font-medium truncate">
+                              <div className="flex items-center space-x-2 bg-gray-50 dark:bg-gray-700/50 px-3 py-2 rounded-lg min-w-0">
+                                <ExternalLink className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                                <span
+                                  className="text-sm text-gray-700 dark:text-gray-300 font-medium truncate"
+                                  title={company.website}
+                                >
                                   {company.website}
                                 </span>
                               </div>
@@ -1443,13 +1479,13 @@ const CompanySearch = ({
                     </div>
 
                     {/* Bouton d'action */}
-                    <div className="flex flex-col items-end space-y-2">
+                    <div className="flex flex-col items-end space-y-2 flex-shrink-0">
                       <button
-                        className="flex items-center  bg-gradient-to-r from-emerald-400 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white px-2 py-2 rounded-xl font-semibold text-sm transition-all duration-200 shadow-lg hover:shadow-xl transform group-hover:scale-105"
+                        className="flex items-center bg-gradient-to-r from-emerald-400 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white px-2 py-2 rounded-xl font-semibold text-sm transition-all duration-200 shadow-lg hover:shadow-xl transform group-hover:scale-105"
                         style={{ width: "110px" }}
                       >
                         <span>Voir les avis</span>
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform ml-1" />
                       </button>
 
                       {/* Score de confiance visuel */}
@@ -1492,9 +1528,9 @@ const CompanySearch = ({
                             <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
                               <ThumbsUp className="w-4 h-4 text-white" />
                             </div>
-                            <div className="flex-1">
+                            <div className="flex-1 min-w-0">
                               {/* Titre de l'avis */}
-                              <p className="text-sm text-gray-700 dark:text-gray-300 italic leading-relaxed mb-2">
+                              <p className="text-sm text-gray-700 dark:text-gray-300 italic leading-relaxed mb-2 break-words">
                                 "
                                 {company.fiveStarReviews[0]?.title ||
                                   "Aucun titre disponible"}
@@ -1502,8 +1538,8 @@ const CompanySearch = ({
                               </p>
 
                               {/* Rating avec étoiles */}
-                              <div className="flex items-center space-x-2">
-                                <div className="flex items-center space-x-1">
+                              <div className="flex items-center space-x-2 flex-wrap">
+                                <div className="flex items-center space-x-1 flex-shrink-0">
                                   {[...Array(5)].map((_, i) => (
                                     <Star
                                       key={i}
@@ -1546,12 +1582,14 @@ const CompanySearch = ({
                   Commencez votre recherche
                 </h4>
                 <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                  Utilisez la barre de recherche ci-dessus pour trouver des entreprises ou explorez avec la recherche avancée.
+                  Utilisez la barre de recherche ci-dessus pour trouver des
+                  entreprises ou explorez avec la recherche avancée.
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-4">
-                  <button 
+                  <button
                     onClick={() => setShowAdvancedSearch(true)}
-                    className="flex items-center space-x-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl">
+                    className="flex items-center space-x-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
+                  >
                     <Star className="w-4 h-4" />
                     <span>Recherche avancée</span>
                   </button>
